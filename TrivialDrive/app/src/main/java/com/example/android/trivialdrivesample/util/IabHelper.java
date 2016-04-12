@@ -312,7 +312,13 @@ public class IabHelper {
         mSetupDone = false;
         if (mServiceConn != null) {
             logDebug("Unbinding from service.");
-            if (mContext != null) mContext.unbindService(mServiceConn);
+            if (mContext != null) //mContext.unbindService(mServiceConn);
+                try {
+                    mContext.unbindService(mServiceConn);
+                } catch (final IllegalArgumentException e) {
+                    // Assume the service has already been unbinded, so only log that it happened
+                    logError("on unbindService: " + e.getMessage());
+                }
         }
         mDisposed = true;
         mContext = null;
