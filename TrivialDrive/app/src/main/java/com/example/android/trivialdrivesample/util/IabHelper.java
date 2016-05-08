@@ -686,7 +686,6 @@ public class IabHelper {
     public void queryInventoryAsync(final boolean querySkuDetails, final List<String> moreItemSkus,
             final List<String> moreSubsSkus, final QueryInventoryFinishedListener listener)
         throws IabAsyncInProgressException {
-        final Handler handler = new Handler();
         checkNotDisposed();
         checkSetupDone("queryInventory");
         flagStartAsync("refresh inventory");
@@ -706,11 +705,7 @@ public class IabHelper {
                 final IabResult result_f = result;
                 final Inventory inv_f = inv;
                 if (!mDisposed && listener != null) {
-                    handler.post(new Runnable() {
-                        public void run() {
-                            listener.onQueryInventoryFinished(result_f, inv_f);
-                        }
-                    });
+                    listener.onQueryInventoryFinished(result_f, inv_f);
                 }
             }
         })).start();
