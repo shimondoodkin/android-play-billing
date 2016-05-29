@@ -142,6 +142,7 @@ public class IabHelper {
     public static final int IABHELPER_SUBSCRIPTIONS_NOT_AVAILABLE = -1009;
     public static final int IABHELPER_INVALID_CONSUMPTION = -1010;
     public static final int IABHELPER_SUBSCRIPTION_UPDATE_NOT_AVAILABLE = -1011;
+    public static final int IABHELPER_SERVICE_IS_NULL = -1012;
 
     // Keys for the responses from InAppBillingService
     public static final String RESPONSE_CODE = "RESPONSE_CODE";
@@ -934,6 +935,11 @@ public class IabHelper {
     }
 
     int queryPurchases(Inventory inv, String itemType) throws JSONException, RemoteException {
+        if (mService == null) {
+            logDebug("queryPurchases: aborted. mService disconnected or un-initialized.");
+            return IABHELPER_SERVICE_IS_NULL;
+        }
+
         // Query purchases
         logDebug("Querying owned items, item type: " + itemType);
         logDebug("Package name: " + mContext.getPackageName());
