@@ -450,8 +450,8 @@ public class IabHelper {
             Bundle buyIntentBundle;
             if (oldSkus == null || oldSkus.isEmpty()) {
                 // Purchasing a new item or subscription re-signup
-                buyIntentBundle = mService.getBuyIntent(3, mContext.getPackageName(), sku, itemType,
-                        extraData);
+                buyIntentBundle = mService == null ? null :
+                        mService.getBuyIntent(3, mContext.getPackageName(), sku, itemType, extraData);
             } else {
                 // Subscription upgrade/downgrade
                 if (!mSubscriptionUpdateSupported) {
@@ -461,7 +461,8 @@ public class IabHelper {
                     if (listener != null) listener.onIabPurchaseFinished(r, null);
                     return;
                 }
-                buyIntentBundle = mService.getBuyIntentToReplaceSkus(5, mContext.getPackageName(),
+                buyIntentBundle = mService == null ? null :
+                        mService.getBuyIntentToReplaceSkus(5, mContext.getPackageName(),
                         oldSkus, sku, itemType, extraData);
             }
             int response = getResponseCodeFromBundle(buyIntentBundle);
@@ -749,7 +750,8 @@ public class IabHelper {
             }
 
             logDebug("Consuming sku: " + sku + ", token: " + token);
-            int response = mService.consumePurchase(3, mContext.getPackageName(), token);
+            int response = mService == null? BILLING_RESPONSE_RESULT_SERVICE_UNAVAILABLE
+                    : mService.consumePurchase(3, mContext.getPackageName(), token);
             if (response == BILLING_RESPONSE_RESULT_OK) {
                 logDebug("Successfully consumed sku: " + sku);
             }
@@ -864,6 +866,11 @@ public class IabHelper {
 
     // Workaround to bug where sometimes response codes come as Long instead of Integer
     int getResponseCodeFromBundle(Bundle b) {
+
+        if(b == null){
+            return BILLING_RESPONSE_RESULT_SERVICE_UNAVAILABLE;
+        }
+
         Object o = b.get(RESPONSE_CODE);
         if (o == null) {
             logDebug("Bundle with null response code, assuming OK (known issue)");
@@ -942,7 +949,8 @@ public class IabHelper {
 
         do {
             logDebug("Calling getPurchases with continuation token: " + continueToken);
-            Bundle ownedItems = mService.getPurchases(3, mContext.getPackageName(),
+            Bundle ownedItems = mService == null ? null :
+                    mService.getPurchases(3, mContext.getPackageName(),
                     itemType, continueToken);
 
             int response = getResponseCodeFromBundle(ownedItems);
@@ -1037,8 +1045,13 @@ public class IabHelper {
         for (ArrayList<String> skuPartList : packs) {
             Bundle querySkus = new Bundle();
             querySkus.putStringArrayList(GET_SKU_DETAILS_ITEM_LIST, skuPartList);
-            Bundle skuDetails = mService.getSkuDetails(3, mContext.getPackageName(),
+            Bundle skuDetails = mService == null ? null:
+                    mService.getSkuDetails(3, mContext.getPackageName(),
                     itemType, querySkus);
+
+            if(skuDetails == null){
+                return BILLING_RESPONSE_RESULT_SERVICE_UNAVAILABLE;
+            }
 
             if (!skuDetails.containsKey(RESPONSE_GET_SKU_DETAILS_LIST)) {
                 int response = getResponseCodeFromBundle(skuDetails);
