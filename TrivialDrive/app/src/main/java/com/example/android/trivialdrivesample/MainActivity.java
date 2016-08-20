@@ -271,7 +271,7 @@ public class MainActivity extends Activity implements IabBroadcastListener,
             if (gasPurchase != null && verifyDeveloperPayload(gasPurchase)) {
                 Log.d(TAG, "We have gas. Consuming it.");
                 try {
-                    mHelper.consumeAsync(inventory.getPurchase(SKU_GAS), mConsumeFinishedListener);
+                    mHelper.consumeAsync(gasPurchase, mConsumeFinishedListener);
                 } catch (IabAsyncInProgressException e) {
                     complain("Error consuming gas. Another async operation in progress.");
                 }
