@@ -111,7 +111,7 @@ http://developer.android.com/google/play/billing/billing_best_practices.html
 
 In particular, you should set developer payload strings when making purchase
 requests and you should verify them when reading back the results. This will make
-it more for a malicious party to perform a replay attack on your app.
+it more difficult for a malicious party to perform a replay attack on your app.
 
 Support
 -------

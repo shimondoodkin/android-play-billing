@@ -33,6 +33,7 @@ import android.widget.ImageView;
 import com.example.android.trivialdrivesample.util.IabBroadcastReceiver;
 import com.example.android.trivialdrivesample.util.IabBroadcastReceiver.IabBroadcastListener;
 import com.example.android.trivialdrivesample.util.IabHelper;
+import com.example.android.trivialdrivesample.util.IabHelper.IabAsyncInProgressException;
 import com.example.android.trivialdrivesample.util.IabResult;
 import com.example.android.trivialdrivesample.util.Inventory;
 import com.example.android.trivialdrivesample.util.Purchase;
@@ -207,7 +208,11 @@ public class MainActivity extends Activity implements IabBroadcastListener,
 
                 // IAB is fully set up. Now, let's get an inventory of stuff we own.
                 Log.d(TAG, "Setup successful. Querying inventory.");
-                mHelper.queryInventoryAsync(mGotInventoryListener);
+                try {
+                    mHelper.queryInventoryAsync(mGotInventoryListener);
+                } catch (IabAsyncInProgressException e) {
+                    complain("Error querying inventory. Another async operation in progress.");
+                }
             }
         });
     }
@@ -265,7 +270,11 @@ public class MainActivity extends Activity implements IabBroadcastListener,
             Purchase gasPurchase = inventory.getPurchase(SKU_GAS);
             if (gasPurchase != null && verifyDeveloperPayload(gasPurchase)) {
                 Log.d(TAG, "We have gas. Consuming it.");
-                mHelper.consumeAsync(inventory.getPurchase(SKU_GAS), mConsumeFinishedListener);
+                try {
+                    mHelper.consumeAsync(inventory.getPurchase(SKU_GAS), mConsumeFinishedListener);
+                } catch (IabAsyncInProgressException e) {
+                    complain("Error consuming gas. Another async operation in progress.");
+                }
                 return;
             }
 
@@ -279,7 +288,11 @@ public class MainActivity extends Activity implements IabBroadcastListener,
     public void receivedBroadcast() {
         // Received a broadcast notification that the inventory of items has changed
         Log.d(TAG, "Received broadcast notification. Querying inventory.");
-        mHelper.queryInventoryAsync(mGotInventoryListener);
+        try {
+            mHelper.queryInventoryAsync(mGotInventoryListener);
+        } catch (IabAsyncInProgressException e) {
+            complain("Error querying inventory. Another async operation in progress.");
+        }
     }
 
     // User clicked the "Buy Gas" button
@@ -306,8 +319,13 @@ public class MainActivity extends Activity implements IabBroadcastListener,
          *        an empty string, but on a production app you should carefully generate this. */
         String payload = "";
 
-        mHelper.launchPurchaseFlow(this, SKU_GAS, RC_REQUEST,
-                mPurchaseFinishedListener, payload);
+        try {
+            mHelper.launchPurchaseFlow(this, SKU_GAS, RC_REQUEST,
+                    mPurchaseFinishedListener, payload);
+        } catch (IabAsyncInProgressException e) {
+            complain("Error launching purchase flow. Another async operation in progress.");
+            setWaitScreen(false);
+        }
     }
 
     // User clicked the "Upgrade to Premium" button.
@@ -320,8 +338,13 @@ public class MainActivity extends Activity implements IabBroadcastListener,
          *        an empty string, but on a production app you should carefully generate this. */
         String payload = "";
 
-        mHelper.launchPurchaseFlow(this, SKU_PREMIUM, RC_REQUEST,
-                mPurchaseFinishedListener, payload);
+        try {
+            mHelper.launchPurchaseFlow(this, SKU_PREMIUM, RC_REQUEST,
+                    mPurchaseFinishedListener, payload);
+        } catch (IabAsyncInProgressException e) {
+            complain("Error launching purchase flow. Another async operation in progress.");
+            setWaitScreen(false);
+        }
     }
 
     // "Subscribe to infinite gas" button clicked. Explain to user, then start purchase
@@ -402,8 +425,13 @@ public class MainActivity extends Activity implements IabBroadcastListener,
 
             setWaitScreen(true);
             Log.d(TAG, "Launching purchase flow for gas subscription.");
-            mHelper.launchPurchaseFlow(this, mSelectedSubscriptionPeriod, IabHelper.ITEM_TYPE_SUBS,
-                    oldSkus, RC_REQUEST, mPurchaseFinishedListener, payload);
+            try {
+                mHelper.launchPurchaseFlow(this, mSelectedSubscriptionPeriod, IabHelper.ITEM_TYPE_SUBS,
+                        oldSkus, RC_REQUEST, mPurchaseFinishedListener, payload);
+            } catch (IabAsyncInProgressException e) {
+                complain("Error launching purchase flow. Another async operation in progress.");
+                setWaitScreen(false);
+            }
             // Reset the dialog options
             mSelectedSubscriptionPeriod = "";
             mFirstChoiceSku = "";
@@ -485,7 +513,13 @@ public class MainActivity extends Activity implements IabBroadcastListener,
             if (purchase.getSku().equals(SKU_GAS)) {
                 // bought 1/4 tank of gas. So consume it.
                 Log.d(TAG, "Purchase is gas. Starting gas consumption.");
-                mHelper.consumeAsync(purchase, mConsumeFinishedListener);
+                try {
+                    mHelper.consumeAsync(purchase, mConsumeFinishedListener);
+                } catch (IabAsyncInProgressException e) {
+                    complain("Error consuming gas. Another async operation in progress.");
+                    setWaitScreen(false);
+                    return;
+                }
             }
             else if (purchase.getSku().equals(SKU_PREMIUM)) {
                 // bought the premium upgrade!
@@ -564,7 +598,7 @@ public class MainActivity extends Activity implements IabBroadcastListener,
         // very important:
         Log.d(TAG, "Destroying helper.");
         if (mHelper != null) {
-            mHelper.dispose();
+            mHelper.disposeWhenFinished();
             mHelper = null;
         }
     }
