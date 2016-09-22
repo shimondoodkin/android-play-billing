@@ -705,7 +705,7 @@ public class IabHelper {
 
                 final IabResult result_f = result;
                 final Inventory inv_f = inv;
-                if (!mDisposed && listener != null) {
+                if (listener != null) {
                     handler.post(new Runnable() {
                         public void run() {
                             listener.onQueryInventoryFinished(result_f, inv_f);
@@ -1084,14 +1084,14 @@ public class IabHelper {
                 }
 
                 flagEndAsync();
-                if (!mDisposed && singleListener != null) {
+                if (singleListener != null) {
                     handler.post(new Runnable() {
                         public void run() {
                             singleListener.onConsumeFinished(purchases.get(0), results.get(0));
                         }
                     });
                 }
-                if (!mDisposed && multiListener != null) {
+                if (multiListener != null) {
                     handler.post(new Runnable() {
                         public void run() {
                             multiListener.onConsumeMultiFinished(purchases, results);
