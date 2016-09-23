@@ -225,6 +225,7 @@ public class IabHelper {
             @Override
             public void onServiceDisconnected(ComponentName name) {
                 logDebug("Billing service disconnected.");
+                mSetupDone = false;
                 mService = null;
             }
 
